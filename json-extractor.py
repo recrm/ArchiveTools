@@ -53,9 +53,9 @@ def json_entries(string, path):
                     except ValueError:
                         print("Error in", filename, "entry incomplete.")
                         continue
-                    
+
                     yield json_object
-            
+
 def parse(args):
     with open(args.output, 'w+', encoding="utf-8") as output:
         csv_writer = csv.writer(output, dialect=args.dialect)
@@ -116,5 +116,5 @@ if __name__ == "__main__":
     args.attributes = [attriObject(i) for i in args.attributes]
     args.string = re.compile(args.string)
     args.hashtag = args.hashtag.lower()
-    
+
     parse(args)
