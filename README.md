@@ -96,8 +96,6 @@ To grab all tweet text on January 1, 2014 in current folder.
 ### To Do
 --------
 
-- Soften the assumption that each line is a valid json object. Program should
-  be able to find a json object even if it is pretty printed.
+- [ ] Soften the assumption that each line is a valid json object. Program should be able to find a json object even if it is pretty printed.
 
-- If top level Json object is a list. Then the extractor should treat it as if
-  each element of list is a top level JSON object.
+- [ ] If top level Json object is a list. Then the extractor should treat it as if each element of list is a top level JSON object.
