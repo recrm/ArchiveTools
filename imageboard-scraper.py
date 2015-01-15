@@ -5,6 +5,36 @@ import time
 import os
 import shutil
 import argparse
+import math
+
+class Response:
+    def __init__(self):
+        self.time = 0
+        self.rate = 1
+
+    @staticmethod
+    def current_time():
+        return math.ceil(time.time())
+
+    def get_response(self, *args, **kwargs):
+        """Wrapper function for requests.get that limits rate."""
+        test = self.current_time()
+        while test <= self.time:
+            time.sleep(1)
+            test = self.current_time()
+
+        http = requests.get(*args, **kwargs)
+        self.time = self.current_time() + self.rate
+
+        #Check for breakthrough rate limits.
+        if http.status_code == 522:
+            self.time +=1
+            self.rate +=1
+            return self.get_response(*args, **kwargs)
+
+        return http
+
+GET = Response()
 
 def capture_image(post, args):
     """Downloads the image assosiated with a post."""
@@ -12,31 +42,24 @@ def capture_image(post, args):
         filename = str(post['tim']) + post['ext']
         if not os.path.isfile(filename):
             url = args.url['images'].format(args.board, filename)
-            img = requests.get(url, stream=True)
-            if img.status_code != 200:
-                print("bad url", url)
-                sys.exit()
+            img = GET.get_response(url, stream=True)
             img.raw.decode_content = True
-            with open(args.output + "/images/" + filename, "wb+") as im:
+            with open(args.output + "image/" + filename, "wb+") as im:
                 shutil.copyfileobj(img.raw, im)
 
 def posts(board, since):
     """Iterates over new posts."""
+
+    #Get list of threads.
     url = args.url['catalog'].format(board)
-    catalog = requests.get(url)
-    if catalog.status_code != 200:
-        print("bad url", url)
-        sys.exit()
-    catalog = catalog.json()
+    catalog = GET.get_response(url).json()
+
+    #Iterate over posts in thread
     for page in catalog:
         for thread in page["threads"]:
             if thread['last_modified'] > since:
                 iden = args.url['threads'].format(board, thread["no"])
-                t = requests.get(iden)
-                if t.status_code != 200:
-                    print("bad url", iden)
-                    sys.exit()
-                t = t.json()
+                t = GET.get_response(iden).json()
                 for post in t["posts"]:
                     if post['time'] > since:
                         yield post
