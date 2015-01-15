@@ -52,33 +52,41 @@ with two hashtags will output two lines in the csv if hashtags are to be recorde
 ### Other Arguments
 ---------------
 
--h          | Outputs the command line help screen.
-            |example: python3 json-extractor.py -h
+* -h          
+	* Outputs the command line help screen.
+	* example: python3 json-extractor.py -h
 
--string     |Limits which .json files the extractor looks in.
-            |example: python3 json-extractor.py -string Rob
-            |(Will only look in .json files that contain the string "Rob" in its filename.
+* -string     
+	* Limits which .json files the extractor looks in.
+	* example: python3 json-extractor.py -string Rob
+	* (Will only look in .json files that contain the string "Rob" in its filename.
 
--path       |Changes which folder the extractor looks in for .json files.
-            |example: python3 json-extractor.py -path /path/to/folder
-            |(Looks in folder /path/to/folder to find tweets.)
+* -path
+	* Changes which folder the extractor looks in for .json files.
+	* example: python3 json-extractor.py -path /path/to/folder
+	* (Looks in folder /path/to/folder to find tweets.)
 
--output     |Changes the name of the csv file the extractor outputs to.
-            |example: python3 json-extractor.py -output Rob-Ford.csv
-            |(Rob-Ford.csv will be created instead of output.csv)
+* -output     
+	* Changes the name of the csv file the extractor outputs to.
+	* example: python3 json-extractor.py -output Rob-Ford.csv
+	* (Rob-Ford.csv will be created instead of output.csv)
 
--start      |Allows the extractor to filter by time. If set will only record
-            |tweets after start and before end (format mm:dd:yyyy).
+* -start      
+	* Allows the extractor to filter by time. If set will only record
+	* tweets after start and before end (format mm:dd:yyyy).
 
--end        |example: python3 json-extractor.py -start 01:01:2014 -end 01:02:2014
-            |(Records all tweets between midnight January first and midnight January second.
+* -end        
+	* example: python3 json-extractor.py -start 01:01:2014 -end 01:02:2014
+	* (Records all tweets between midnight January first and midnight January second.
 
--dialect    |Sets the format the csv file will follow. Defaults to microsoft
-            |excel. See python module csv.list_dialects() for details.
+* -dialect    
+	* Sets the format the csv file will follow. Defaults to microsoft
+	* excel. See python module csv.list_dialects() for details.
 
--hashtag    |Only record tweets that contain this hashtag.
-            |example: python3 json-extractor.py -hashtag gamergate
-            |(Records only tweets that contain hashtag "gamergate")
+* -hashtag    
+	* Only record tweets that contain this hashtag.
+	* example: python3 json-extractor.py -hashtag gamergate
+	* (Records only tweets that contain hashtag "gamergate")
 
 --------
 ### Examples
