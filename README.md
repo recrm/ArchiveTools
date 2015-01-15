@@ -4,15 +4,15 @@ A collection of tools for archiving and analysing the internet.
 All scripts in this toolset are with and designed to be used with python3.
 Python2 is not supported.
 
-## json-json-extractor.py
+## json-extractor.py
 
-Json-json-extractor.py is a short script designed to a condensed CSV files from a
-collection of line seperated JSON files. This script is designed for use with
-the data output of https://github.com/edsu/twarc and all of the scrappers in
-this project.
+Json-json-extractor.py is a short script designed to extract a condensed CSV
+file from a collection of line separated JSON files. This script is designed
+for use with the data output of https://github.com/edsu/twarc and all of the
+scrappers in this project.
 
 Json-extractor.py is a program that searches .json file line by line and extracts
-specified elements. The scripts expects each line in a file to be a valid JSON
+specified elements. The script expects each line in a file to be a valid JSON
 object. As this program was primarily created to scan twarc output, all examples
 below assume twitter data.
 
@@ -32,7 +32,7 @@ The arguments are the data pieces that the extractor will extract. For example.
 This script will create a csv file with 3 columns. It will contain the text of
 the tweet as the first element, the id of the tweet as the second, and the
 created_at timestamp as the third. These lables match the json labels in the
-.json file exactly. See the attached example json file for details.
+.json file exactly.
 
 If an element is within another object separate the object and attribute by the
 character ":"
@@ -52,33 +52,33 @@ with two hashtags will output two lines in the csv if hashtags are to be recorde
 ### Other Arguments
 ---------------
 
--h          Outputs the command line help screen.
-            example: python3 json-extractor.py -h
+-h          | Outputs the command line help screen.
+            |example: python3 json-extractor.py -h
 
--string     Limits which .json files the extractor looks in.
-            example: python3 json-extractor.py -string Rob
-            (Will only look in .json files that contain the string "Rob" in its filename.
+-string     |Limits which .json files the extractor looks in.
+            |example: python3 json-extractor.py -string Rob
+            |(Will only look in .json files that contain the string "Rob" in its filename.
 
--path       Changes which folder the extractor looks in for .json files.
-            example: python3 json-extractor.py -path /path/to/folder
-            (Looks in folder /path/to/folder to find tweets.)
+-path       |Changes which folder the extractor looks in for .json files.
+            |example: python3 json-extractor.py -path /path/to/folder
+            |(Looks in folder /path/to/folder to find tweets.)
 
--output     Changes the name of the csv file the extractor outputs to.
-            example: python3 json-extractor.py -output Rob-Ford.csv
-            (Rob-Ford.csv will be created instead of output.csv)
+-output     |Changes the name of the csv file the extractor outputs to.
+            |example: python3 json-extractor.py -output Rob-Ford.csv
+            |(Rob-Ford.csv will be created instead of output.csv)
 
--start      Allows the extractor to filter by time. If set will only record
-            tweets after start and before end (format mm:dd:yyyy).
+-start      |Allows the extractor to filter by time. If set will only record
+            |tweets after start and before end (format mm:dd:yyyy).
 
--end        example: python3 json-extractor.py -start 01:01:2014 -end 01:02:2014
-            (Records all tweets between midnight January first and midnight January second.
+-end        |example: python3 json-extractor.py -start 01:01:2014 -end 01:02:2014
+            |(Records all tweets between midnight January first and midnight January second.
 
--dialect    Sets the format the csv file will follow. Defaults to microsoft
-            excel. See python module csv.list_dialects() for details.
+-dialect    |Sets the format the csv file will follow. Defaults to microsoft
+            |excel. See python module csv.list_dialects() for details.
 
--hashtag    Only record tweets that contain this hashtag.
-            example: python3 json-extractor.py -hashtag gamergate
-            (Records only tweets that contain hashtag "gamergate")
+-hashtag    |Only record tweets that contain this hashtag.
+            |example: python3 json-extractor.py -hashtag gamergate
+            |(Records only tweets that contain hashtag "gamergate")
 
 --------
 ### Examples
