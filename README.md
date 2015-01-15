@@ -11,7 +11,7 @@ file from a collection of line separated JSON files. This script is designed
 for use with the data output of https://github.com/edsu/twarc and all of the
 scrappers in this project.
 
-Json-extractor.py is a program that searches .json file line by line and extracts
+Json-extractor.py is a program that searches JSON files line by line and extracts
 specified elements. The script expects each line in a file to be a valid JSON
 object. As this program was primarily created to scan twarc output, all examples
 below assume twitter data.
