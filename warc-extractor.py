@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#!/usr/bin/env python3
 """
     warc-extractor, a simple command line tool for expanding warc files.
     Copyright (C) 2014  Ryan Chartier
@@ -811,7 +811,7 @@ if __name__ == "__main__":
     if args.output_path[-1] != "/":
         args.output_path += "/"
 
-    if args.dump:
+    if dump:
         if not os.path.exists(args.output_path):
             os.makedirs(args.output_path)
 
