@@ -54,7 +54,11 @@ def json_entries(string, path):
                         print("Error in", filename, "entry incomplete.")
                         continue
 
-                    yield json_object
+                    if isinstance(json_object, list):
+                        for jobject in json_object:
+                            yield jobject
+                    else:
+                        yield json_object
 
 def parse(args):
     with open(args.output, 'w+', encoding="utf-8") as output:
