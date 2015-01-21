@@ -811,7 +811,7 @@ if __name__ == "__main__":
     if args.output_path[-1] != "/":
         args.output_path += "/"
 
-    if dump:
+    if args.dump:
         if not os.path.exists(args.output_path):
             os.makedirs(args.output_path)
 
