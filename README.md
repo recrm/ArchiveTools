@@ -6,9 +6,13 @@ All scripts in this tool set are with and designed to be used with python 3. Pyt
 
 ## json-extractor.py
 
-Json-json-extractor.py is a short script designed to extract a condensed CSV file from a collection of line separated JSON files. This script is designed for use with the data output of HTTP://github.com/edsu/twarc and all of the scrappers in this project.
+Json-json-extractor.py is a short script designed to extract a condensed CSV file from a collection of line separated JSON files. This script is designed for use with the data output of http://github.com/edsu/twarc and all of the scrappers in this project.
 
 Json-extractor.py is a program that searches JSON files line by line and extracts specified elements. The script expects each line in a file to be a valid JSON object. As this program was primarily created to scan twarc output, all examples below assume twitter data.
+
+Note: if .json file is actually valid json, then the entire file will be treated as a single json entry. The sole exception to this is if the root object is a list. In this case the parser will treat each entry in the list as a separate object.
+
+Note: As of right now the parser handles newlines inside of a json object poorly. The parser assumes that all unnecessary whitespace in a .json file has been removed.
 
 ------------
 ### Basic usage.
@@ -50,10 +54,29 @@ Will return the "text" attribute inside the hash tags object which is itself ins
 	* example: python3 json-extractor.py -path /path/to/folder
 	* (Looks in folder /path/to/folder to find tweets.)
 
+* -id
+    * Adds duplicate detection an specified json entry.
+    * example: python3 json-extractor.py -id id_str
+    * (Will skip any json object that has the attribute id_str identical to an entry already scanned.)
+
+* -NA
+    * This flag will insert 'NA' into any json entry that cannot be found instead of erroring.
+    * example: python3 json-extractor.py -NA optional:entry
+    * (Will create insert 'NA' into any 'optional:entry' that cannot be found.
+
+* -compress
+    * Creates a new .json file instead of a csv file. Inserts all scanned entries into the output file.
+    * example python3 json-extractor.py -compress -path /path/to/folder
+    * (Will scan all .json files in /path/to/folder and will insert them into one large .json file.
+
 * -output
 	* Changes the name of the csv file the extractor outputs to.
 	* example: python3 json-extractor.py -output Rob-Ford.csv
 	* (Rob-Ford.csv will be created instead of output.csv)
+
+* -dialect
+	* Sets the format the csv file will follow. Defaults to Microsoft excel.
+	* See python module csv.list_dialects() for details.
 
 * -start
 	* Allows the extractor to filter by time. If set will only record tweets
@@ -62,10 +85,6 @@ Will return the "text" attribute inside the hash tags object which is itself ins
 * -end
 	* example: python3 json-extractor.py -start 01:01:2014 -end 01:02:2014
 	* (Records all tweets between midnight January first and midnight January second.
-
-* -dialect
-	* Sets the format the csv file will follow. Defaults to Microsoft excel.
-	* See python module csv.list_dialects() for details.
 
 * -hashtag
 	* Only record tweets that contain this hash tag.
