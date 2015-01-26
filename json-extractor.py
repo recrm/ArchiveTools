@@ -62,16 +62,16 @@ class attriObject:
         else:
             return ";".join(found)
 
-def json_entries(string, path):
+def json_entries(args):
     """Iterates over entries in path."""
-    for filename in os.listdir(path):
-        if re.match(string, filename) and ".json" in filename:
-            f = gzip.open if ".gz" in filename else open
+    for filename in os.listdir(args.path):
+        if re.match(args.string, filename) and ".json" in filename:
+            f = gzip.open if filename.endswith(".gz") else open
             print("parsing", filename)
-            with f(path + filename, 'rb') as data_file:
+            with f(args.path + filename, 'rb') as data_file:
                 for line in data_file:
                     try:
-                        json_object = json.loads(line.decode("utf-8"))
+                        json_object = json.loads(line.decode(args.encoding))
                     except ValueError:
                         print("Error in", filename, "entry incomplete.")
                         continue
@@ -90,7 +90,7 @@ def parse(args):
         count = 0
         tweets = set()
 
-        for json_object in json_entries(args.string, args.path):
+        for json_object in json_entries(args):
             #Check for duplicates
             if args.id:
                 identity = args.id.getElement(json_object)
@@ -136,12 +136,13 @@ if __name__ == "__main__":
     parser.add_argument("-string", default="", help="Regular expression for files to parse. Defaults to empty string.")
     parser.add_argument("-path", default="./", help="Optional path to folder containing tweets. Defaults to current folder.")
     parser.add_argument("-id", default="", help="Defines what entry should be used as the element id. Defaults to no id duplicate checking.")
-    parser.add_argument("-NA", action="store_true", help="Insert NA into absent entries instead of error.")
+    parser.add_argument("-na", action="store_true", help="Insert NA into absent entries instead of error.")
     parser.add_argument("-compress", action="store_true", help="Compress json archives into single file. Ignores csv column choices.")
     parser.add_argument("-output", default="output", help="Optional file to output results. Defaults to output.")
     parser.add_argument("-dialect", default="excel", help="Sets dialect for csv output. Defaults to excel. See python module csv.list_dialects()")
-    parser.add_argument("-start", default="", help="Define start date for tweets. Format (mm:dd:yyyy)")
-    parser.add_argument("-end", default="", help="Define end date for tweets. Format (mm:dd:yyyy)")
+    parser.add_argument("-encoding", default="utf-8", help="Sets character encoding for json files. Defaults to 'utf-8'.")
+    parser.add_argument("-start", default="", help="Define start date for tweets. Format (dd:mm:yyyy)")
+    parser.add_argument("-end", default="", help="Define end date for tweets. Format (dd:mm:yyyy)")
     parser.add_argument("-hashtag", default="", help="Define a hashtag that must be in parsed tweets.")
     args = parser.parse_args()
 
@@ -160,8 +161,8 @@ if __name__ == "__main__":
     args.string = re.compile(args.string)
 
     #Tweet specific restrictions.
-    args.start = strptime(args.start, '%m:%d:%Y') if args.start else False
-    args.end = strptime(args.end, '%m:%d:%Y') if args.end else False
+    args.start = strptime(args.start, '%d:%m:%Y') if args.start else False
+    args.end = strptime(args.end, '%d:%m:%Y') if args.end else False
     args.hashtag = args.hashtag.lower()
 
     parse(args)
