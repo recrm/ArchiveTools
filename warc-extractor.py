@@ -344,6 +344,7 @@ class WARCHeader(CaseInsensitiveDict):
             # Use standard forms for commonly used patterns
             name = name.replace("Warc-", "WARC-").replace("-Ip-", "-IP-").replace("-Id", "-ID").replace("-Uri", "-URI")
             entry = "{}: {}\r\n".format(str(name), str(value)).encode()
+            f.write(entry)
 
         # Header ends with an extra CRLF
         f.write(b"\r\n")
@@ -781,7 +782,7 @@ def parse(args):
             if args.error:
                 if args.silence:
                     print("Error in record. Recording to error.warc.")
-                with open(args.output_path + "error.warc", "wb") as fp:
+                with open(args.output_path + "error.warc", "ab") as fp:
                     record.write_to(fp)
             else:
                 raise
