@@ -155,9 +155,9 @@ if __name__ == "__main__":
         args.path += "/"
 
     if args.id:
-        args.id = attriObject(args.id, args.NA)
+        args.id = attriObject(args.id, args.na)
 
-    args.attributes = [attriObject(i, args.NA) for i in args.attributes]
+    args.attributes = [attriObject(i, args.na) for i in args.attributes]
     args.string = re.compile(args.string)
 
     #Tweet specific restrictions.
