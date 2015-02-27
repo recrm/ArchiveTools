@@ -2,7 +2,7 @@
 
 A collection of tools for archiving and analyzing the internet.
 
-All scripts in this tool set are with and designed to be used with python 3. Python 2 is not supported.
+All scripts in this tool set are designed to be used with python 3. Python 2 is not supported.
 
 ## json-extractor.py
 
@@ -265,7 +265,7 @@ To dump everything a warc file contains to disk.
 
 Warc files are complicated and huge. Creating a single script that can properly handle all of the many strange and wonderful objects that might be hidden in a warc file is a large undertaking. Because of this bugs are inevitable.
 
-The script contains a -error command script designed to make dealing with problematic warc entries a bit easier. If the -error tag is supplied to the script, the script will do it's best to skip all entries that cause errors then write all problematic entries to a new warc file 'error.warc'. Should this script error, please try running it again with the -error tag and then upload the resulting 'error.warc' file along with the bug report.
+The script contains an -error command script designed to make dealing with problematic warc entries a bit easier. If the -error tag is supplied to the script, the script will do it's best to skip all entries that cause errors then write all problematic entries to a new warc file 'error.warc'. Should this script error, please try running it again with the -error tag and then upload the resulting 'error.warc' file along with the bug report.
 
 There are many possible problems a warc file could contain that are not limited to specific entries. In these situations the -error tag will not prevent the error and will not create the error.warc file. In these cases please still fill out a bug report. However, the problem is unlikely to be fixed unless I can get access to the warc file that created the problem.
 
