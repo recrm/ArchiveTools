@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-    warc-extractor, a simple command line tool for expanding warc files.
+    json-extractor.py, a simple command line tool for creating csv files from
+    large json datasets.
     Copyright (C) 2014  Ryan Chartier
 
     This program is free software: you can redistribute it and/or modify

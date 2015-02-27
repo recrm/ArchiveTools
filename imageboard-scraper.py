@@ -18,18 +18,18 @@
 """
 
 import json
-import requests
+import re
 import sys
 import time
 import os
 import shutil
 import argparse
 import math
+import requests
 
 class Response:
     def __init__(self):
-        self.time = 0
-        self.rate = 1
+        self.error = 0
 
     @staticmethod
     def current_time():
@@ -37,21 +37,31 @@ class Response:
 
     def get_response(self, *args, **kwargs):
         """Wrapper function for requests.get that limits rate."""
-        test = self.current_time()
-        while test <= self.time:
-            time.sleep(1)
-            test = self.current_time()
-
         http = requests.get(*args, **kwargs)
-        self.time = self.current_time() + self.rate
 
-        #Check for breakthrough rate limits.
-        if http.status_code == 522:
-            self.time +=1
-            self.rate +=1
+        if http.status_code == 200:
+            #All is well.
+            return http
+
+        elif http.status_code == 522:
+#            "We are being rate limited.
+            print("We are being rate limited. Waiting for 30 seconds.")
+            time.sleep(30)
             return self.get_response(*args, **kwargs)
 
-        return http
+        elif http.status_code == 404:
+            #Thread has been deleted.
+            return False
+
+        elif self.error < 50:
+            time.sleep(10)
+            print("Error detected '{}'.".format(http.status_code))
+            self.error +=1
+            return self.get_response(*args, **kwargs)
+
+        else:
+            print("Too many errors.")
+            raise Exception
 
 GET = Response()
 
@@ -59,12 +69,13 @@ def capture_image(post, args):
     """Downloads the image assosiated with a post."""
     if "tim" in post:
         filename = str(post['tim']) + post['ext']
-        if not os.path.isfile(filename):
+        if not os.path.isfile(args.output + "image/" + filename):
             url = args.url['images'].format(args.board, filename)
             img = GET.get_response(url, stream=True)
-            img.raw.decode_content = True
-            with open(args.output + "image/" + filename, "wb+") as im:
-                shutil.copyfileobj(img.raw, im)
+            if img:
+                img.raw.decode_content = True
+                with open(args.output + "image/" + filename, "wb+") as im:
+                    shutil.copyfileobj(img.raw, im)
 
 def posts(board, since):
     """Iterates over new posts."""
@@ -79,33 +90,47 @@ def posts(board, since):
             if thread['last_modified'] > since:
                 iden = args.url['threads'].format(board, thread["no"])
                 t = GET.get_response(iden).json()
-                for post in t["posts"]:
-                    if post['time'] > since:
-                        yield post
+                if t:
+                    for post in t["posts"]:
+                        if post['time'] > since:
+                            yield post
+
+def get_since(args):
+    """
+    infer last scrape based on other scrapes.
+    """
+    other_archive_files = []
+    for filename in os.listdir(args.output):
+        if re.match("^{}-\d+\.json(\.gz)?$".format(args.board), filename):
+            other_archive_files.append(filename)
+    other_archive_files.sort()
+
+    since_id = None
+    while len(other_archive_files) != 0:
+        f = other_archive_files.pop()
+        if os.path.getsize(args.output + ("/") + f) > 0:
+            since_id = f
+
+    if not since_id:
+        return 0
+
+    since = since_id.rstrip(".gz").rstrip(".json").lstrip(args.board).lstrip("-")
+    t = time.strptime(since, "%Y%m%d%H%M%S")
+    return int(time.mktime(t))
+
 
 def parse(args):
     #Read in previous config.
-    config = args.output + "/.{}-config".format(args.board)
-    since = 0
-    if os.path.isfile(config):
-        with open(config) as fp:
-            since = int(fp.readline())
-    largest_id = since
+    since = get_since(args)
 
     #Create new file and insert new posts.
     t = time.strftime("%Y%m%d%H%M%S", time.localtime())
     with open(args.output + "/{}-{}.json".format(args.board, t), "w+") as fp:
         for post in posts(args.board, since):
-            if post['time'] > largest_id:
-                largest_id = post['time']
             json.dump(post, fp)
             fp.write("\n")
             if args.image:
                 capture_image(post, args)
-
-    #write out new config.
-    with open(config, "w+") as fp:
-        fp.write(str(largest_id))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Scrapes imageboards based on the 4chan api.')
@@ -141,3 +166,5 @@ if __name__ == "__main__":
         }
 
     parse(args)
+
+    print("Scraper finished successfully.")
