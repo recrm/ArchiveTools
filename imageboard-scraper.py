@@ -51,6 +51,7 @@ class Response:
 
         elif http.status_code == 404:
             #Thread has been deleted.
+            print("Thread not found.")
             return False
 
         elif self.error < 50:
@@ -89,9 +90,9 @@ def posts(board, since):
         for thread in page["threads"]:
             if thread['last_modified'] > since:
                 iden = args.url['threads'].format(board, thread["no"])
-                t = GET.get_response(iden).json()
+                t = GET.get_response(iden)
                 if t:
-                    for post in t["posts"]:
+                    for post in t.json()["posts"]:
                         if post['time'] > since:
                             yield post
 
@@ -166,5 +167,3 @@ if __name__ == "__main__":
         }
 
     parse(args)
-
-    print("Scraper finished successfully.")

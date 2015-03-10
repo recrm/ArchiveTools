@@ -778,7 +778,7 @@ def parse(args):
                 #Write file.
                 with open(path, 'wb') as fp:
                     record.http.write_payload_to(fp)
-        except:
+        except Exception:
             if args.error:
                 if args.silence:
                     print("Error in record. Recording to error.warc.")
