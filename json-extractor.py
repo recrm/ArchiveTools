@@ -85,9 +85,11 @@ def json_entries(args):
 
 def parse(args):
     with open(args.output, 'w+', encoding="utf-8") as output:
+        print("Opened", args.output)
         if not args.compress:
             csv_writer = csv.writer(output, dialect=args.dialect)
-            csv_writer.writerow([a.title for a in args.attributes])
+            if not args.nolabel:
+                csv_writer.writerow([a.title for a in args.attributes])
         count = 0
         tweets = set()
 
@@ -101,7 +103,7 @@ def parse(args):
 
             #Check for time restrictions.
             if args.start or args.end:
-                tweet_time = strptime(json_object['created_at'],'%a %b %d %H:%M:%S +0000 %Y')
+                tweet_time = strptime(args.date.getElement(json_object), args.dateformat)
                 if args.start and args.start > tweet_time:
                     continue
                 if args.end and args.end < tweet_time:
@@ -138,12 +140,17 @@ if __name__ == "__main__":
     parser.add_argument("-path", default="./", help="Optional path to folder containing tweets. Defaults to current folder.")
     parser.add_argument("-id", default="", help="Defines what entry should be used as the element id. Defaults to no id duplicate checking.")
     parser.add_argument("-na", action="store_true", help="Insert NA into absent entries instead of error.")
+    parser.add_argument("-nolabel", action="store_true", help="Prevents writting column headers to csv file.")
     parser.add_argument("-compress", action="store_true", help="Compress json archives into single file. Ignores csv column choices.")
     parser.add_argument("-output", default="output", help="Optional file to output results. Defaults to output.")
     parser.add_argument("-dialect", default="excel", help="Sets dialect for csv output. Defaults to excel. See python module csv.list_dialects()")
     parser.add_argument("-encoding", default="utf-8", help="Sets character encoding for json files. Defaults to 'utf-8'.")
+    parser.add_argument("-date", default="created_at", help="Define where to find date of entry.")
+    parser.add_argument("-dateformat", default='%a %b %d %H:%M:%S +0000 %Y', help="Define format that dates are given.")
+
     parser.add_argument("-start", default="", help="Define start date for tweets. Format (dd:mm:yyyy)")
     parser.add_argument("-end", default="", help="Define end date for tweets. Format (dd:mm:yyyy)")
+
     parser.add_argument("-hashtag", default="", help="Define a hashtag that must be in parsed tweets.")
     args = parser.parse_args()
 
@@ -158,6 +165,7 @@ if __name__ == "__main__":
     if args.id:
         args.id = attriObject(args.id, args.na)
 
+    args.date = attriObject(args.date, args.na)
     args.attributes = [attriObject(i, args.na) for i in args.attributes]
     args.string = re.compile(args.string)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-    warc-extractor, a simple command line tool for expanding warc files.
+    A simple command line tool for archiving 4chan type imageboards.
     Copyright (C) 2014  Ryan Chartier
 
     This program is free software: you can redistribute it and/or modify
