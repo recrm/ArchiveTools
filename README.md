@@ -227,16 +227,6 @@ The above script would attempt to extract the contents of the filtered entries. 
 	* 'content' will output the saved file in all warc entries that remain after filter.
 	* example: python3 warc-extractor.py -dump content
 
-* -output
-	* Changes the name of the warc file the extractor outputs to.
-	* example: python3 warc-extractor.py -output new-warc.warc
-	* (new-warc.warc will be created instead of output.warc)
-
-* -output
-	* Changes the name of the warc file the extractor outputs to.
-	* example: python3 warc-extractor.py -output new-warc.warc
-	* (new-warc.warc will be created instead of output.warc)
-
 * -silence
     * Boolean variables, silences collection of index data and prevents script from writing to terminal.
 
