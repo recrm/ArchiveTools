@@ -6,7 +6,7 @@ All scripts in this tool set are designed to be used with python 3. Python 2 is 
 
 ## json-extractor.py
 
-Json-json-extractor.py is a short script designed to extract a condensed CSV file from a collection of line separated JSON files. This script is designed for use with the data output of http://github.com/edsu/twarc and all of the scrappers in this project.
+Json-json-extractor.py is a short script designed to extract a condensed CSV file from a collection of line separated JSON files. This script is designed for use with the data output of http://github.com/edsu/twarc and all of the scrapers in this project.
 
 Json-extractor.py is a program that searches JSON files line by line and extracts specified elements. The script expects each line in a file to be a valid JSON object. As this program was primarily created to scan twarc output, all examples below assume twitter data.
 
