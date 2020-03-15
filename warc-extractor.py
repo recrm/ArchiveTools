@@ -35,7 +35,7 @@ Python library to work with WARC files.
 
 """
 
-from collections import MutableMapping
+from collections.abc import MutableMapping
 from http.client import HTTPMessage
 from urllib.parse import urlparse, unquote
 from pprint import pprint
