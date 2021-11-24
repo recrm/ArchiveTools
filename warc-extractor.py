@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 warc.utils
@@ -40,11 +40,8 @@ from http.client import HTTPMessage
 from urllib.parse import urlparse, unquote
 from pprint import pprint
 import os
-import re
 import argparse
-import sys
 import mimetypes
-import shutil
 import email.parser
 import gzip
 import datetime
@@ -53,10 +50,11 @@ import re
 import io
 import hashlib
 
-#---------------------------------------------------
+# ---------------------------------------------------
 #                      warc.utils                  -
-#---------------------------------------------------
+# ---------------------------------------------------
 SEP = re.compile("[;:=]")
+
 
 class CaseInsensitiveDict(MutableMapping):
     """Almost like a dictionary, but keys are case-insensitive.
@@ -72,6 +70,7 @@ class CaseInsensitiveDict(MutableMapping):
         >>> d.keys()
         ["foo", "bar"]
     """
+
     def __init__(self, *args, **kwargs):
         self._d = {}
         self.update(dict(*args, **kwargs))
@@ -94,12 +93,14 @@ class CaseInsensitiveDict(MutableMapping):
     def __len__(self):
         return len(self._d)
 
+
 class FilePart:
     """File interface over a part of file.
 
     Takes a file and length to read from the file and returns a file-object
     over that part of the file.
     """
+
     def __init__(self, fileobj, length):
         self.fileobj = fileobj
         self.length = length
@@ -120,7 +121,7 @@ class FilePart:
         self.offset += len(content)
         return content
 
-    def _unread(self, content):
+    def unread(self, content):
         self.buf = content + self.buf
         self.offset -= len(content)
 
@@ -133,8 +134,8 @@ class FilePart:
 
         if b"\n" in chunk:
             index = chunk.index(b"\n")
-            self._unread(chunk[index+1:])
-            chunk = chunk[:index+1]
+            self.unread(chunk[index + 1:])
+            chunk = chunk[:index + 1]
         chunks.append(chunk)
         return b"".join(chunks)
 
@@ -144,20 +145,22 @@ class FilePart:
             yield line
             line = self.readline()
 
+
 class HTTPObject(CaseInsensitiveDict):
     """Small object to help with parsing HTTP warc entries"""
+
     def __init__(self, request_file):
-        #Parse version line
+        # Parse version line
         id_str_raw = request_file.readline()
         id_str = id_str_raw.decode("iso-8859-1")
         if "HTTP" not in id_str:
-            #This is not an HTTP object.
-            request_file._unread(id_str_raw)
+            # This is not an HTTP object.
+            request_file.unread(id_str_raw)
             raise ValueError("Object is not HTTP.")
 
         words = id_str.split()
         command = path = status = error = version = None
-        #If length is not 3 it is a bad version line.
+        # If length is not 3 it is a bad version line.
         if len(words) >= 3:
             if words[1].isdigit():
                 version = words[0]
@@ -193,7 +196,7 @@ class HTTPObject(CaseInsensitiveDict):
         return email.parser.Parser(_class=HTTPMessage).parsestr(hstring.decode('iso-8859-1')), hstring
 
     def __repr__(self):
-        return(self.vline + str(self._header))
+        return self.vline + str(self._header)
 
     def __getitem__(self, name):
         try:
@@ -209,9 +212,9 @@ class HTTPObject(CaseInsensitiveDict):
             else:
                 raise
 
-    def _reset(self):
-        self.payload._unread(self.hstring)
-        self.payload._unread(self._id['vline'])
+    def reset(self):
+        self.payload.unread(self.hstring)
+        self.payload.unread(self._id['vline'])
 
     def write_to(self, f):
         f.write(self._id['vline'])
@@ -253,6 +256,7 @@ class HTTPObject(CaseInsensitiveDict):
 
         fp.write(found)
 
+
 class ContentType(CaseInsensitiveDict):
     def __init__(self, string):
         data = {}
@@ -260,11 +264,12 @@ class ContentType(CaseInsensitiveDict):
         if string:
             _list = [i.strip() for i in string.lower().split(";")]
             self.type = _list[0]
-
             data["type"] = _list[0]
             for i in _list[1:]:
                 test = [n.strip() for n in re.split(SEP, i)]
-                data[test[0]] = test[1]
+                # It's only a property if it has two elements.
+                if len(test) > 1:
+                    data[test[0]] = test[1]
 
         super().__init__(data)
 
@@ -272,9 +277,9 @@ class ContentType(CaseInsensitiveDict):
         return self.type
 
 
-#---------------------------------------------------
+# ---------------------------------------------------
 #                      warc.warc                   -
-#---------------------------------------------------
+# ---------------------------------------------------
 
 class WARCHeader(CaseInsensitiveDict):
     """The WARC Header object represents the headers of a WARC record.
@@ -295,9 +300,9 @@ class WARCHeader(CaseInsensitiveDict):
 
     """
     CONTENT_TYPES = dict(warcinfo='application/warc-fields',
-                        response='application/http; msgtype=response',
-                        request='application/http; msgtype=request',
-                        metadata='application/warc-fields')
+                         response='application/http; msgtype=response',
+                         request='application/http; msgtype=request',
+                         metadata='application/warc-fields')
 
     KNOWN_HEADERS = {
         "type": "WARC-Type",
@@ -369,12 +374,16 @@ class WARCHeader(CaseInsensitiveDict):
         """The value of WARC-Date header."""
         return self['WARC-Date']
 
+
 class WARCRecord(object):
     """The WARCRecord object represents a WARC Record.
     """
-    def __init__(self, header=None, payload=None,  headers={}, defaults=True):
+
+    def __init__(self, header=None, payload=None, headers=None, defaults=True):
         """Creates a new WARC record.
         """
+        if headers is None:
+            headers = {}
 
         if header is None and defaults is True:
             headers.setdefault("WARC-Type", "response")
@@ -399,13 +408,14 @@ class WARCRecord(object):
         self._http = None
         self._content = None
 
-    def _compute_digest(self, payload):
+    @staticmethod
+    def _compute_digest(payload):
         return "sha1:" + hashlib.sha1(payload).hexdigest()
 
     def write_to(self, f):
         self.header.write_to(f)
         if self.http:
-            self.http._reset()
+            self.http.reset()
         f.write(self.payload.read())
         f.write(b"\r\n")
         f.write(b"\r\n")
@@ -503,6 +513,7 @@ class WARCRecord(object):
         }
         return WARCRecord(payload=payload, headers=headers)
 
+
 class WARCFile:
     def __init__(self, filename=None, mode=None, fileobj=None, compress=None):
         if fileobj is None:
@@ -550,8 +561,9 @@ class WARCFile:
         """
         return self.fileobj.tell()
 
+
 class WARCReader:
-    RE_VERSION = re.compile("WARC/(\d+.\d+)\r\n")
+    RE_VERSION = re.compile(r"WARC/(\d+.\d+)\r\n")
     RE_HEADER = re.compile(r"([a-zA-Z_\-]+): *(.*)\r\n")
     SUPPORTED_VERSIONS = ["1.0"]
 
@@ -574,7 +586,7 @@ class WARCReader:
         headers = {}
         while True:
             line = fileobj.readline().decode("utf-8")
-            if line == "\r\n": # end of headers
+            if line == "\r\n":  # end of headers
                 break
             m = self.RE_HEADER.match(line)
             if not m:
@@ -583,7 +595,8 @@ class WARCReader:
             headers[name] = value
         return WARCHeader(headers)
 
-    def expect(self, fileobj, expected_line, message=None):
+    @staticmethod
+    def expect(fileobj, expected_line, message=None):
         line = fileobj.readline().decode("utf-8")
         if line != expected_line:
             message = message or "Expected %r, found %r" % (expected_line, line)
@@ -610,10 +623,11 @@ class WARCReader:
         record = WARCRecord(header, self.current_payload, defaults=False)
         return record
 
-    def _read_payload(self, fileobj, content_length):
+    @staticmethod
+    def _read_payload(fileobj, content_length):
         size = 0
         while size < content_length:
-            chunk_size = min(1024, content_length-size)
+            chunk_size = min(1024, content_length - size)
             chunk = fileobj.read(chunk_size)
             size += chunk_size
             yield chunk
@@ -624,14 +638,17 @@ class WARCReader:
             yield record
             record = self.read_record()
 
-#---------------------------------------------------
+
+# ---------------------------------------------------
 #                 Extractor                        -
-#---------------------------------------------------
+# ---------------------------------------------------
 
 counts = {}
 
-class filterObject:
+
+class FilterObject:
     """Basic object for storing filters."""
+
     def __init__(self, string):
         self.result = True
         if string[0] == "!":
@@ -647,7 +664,8 @@ class filterObject:
         self.k = _list[0]
         self.v = _list[1]
 
-def inc(obj, header=False, dic=False):
+
+def inc(obj, header=None, dic=None):
     """Short script for counting entries."""
     if header:
         try:
@@ -666,6 +684,7 @@ def inc(obj, header=False, dic=False):
     else:
         holder[obj] = 1
 
+
 def warc_records(string, path):
     """Iterates over warc records in path."""
     for filename in os.listdir(path):
@@ -675,7 +694,8 @@ def warc_records(string, path):
                 for record in warc_file:
                     yield record
 
-def checkFilter(filters, record):
+
+def check_filter(filters, record):
     """Check record against filters."""
     for i in filters:
         if i.http:
@@ -690,8 +710,9 @@ def checkFilter(filters, record):
             return False
     return True
 
+
 def parse(args):
-    #Clear output warc file.
+    # Clear output warc file.
     if args.dump == "warc":
         if args.silence:
             print("Recording", args.dump, "to", args.output + ".")
@@ -700,20 +721,20 @@ def parse(args):
 
     for record in warc_records(args.string, args.path):
         try:
-            #Filter out unwanted entries.
-            if not checkFilter(args.filter, record):
+            # Filter out unwanted entries.
+            if not check_filter(args.filter, record):
                 continue
 
-            #Increment Index counters.
+            # Increment Index counters.
             if args.silence:
                 inc("records")
-                inc(record,"warc-type", "types")
+                inc(record, "warc-type", "types")
                 inc(record, "content_type", "warc-content")
                 if record.http:
                     inc(record.http, "content_type", "http-content")
                     inc(record.http, "error", "status")
 
-            #Dump records to file.
+            # Dump records to file.
             if args.dump == "warc":
                 with open(args.output_path + args.output, "ab") as output:
                     record.write_to(output)
@@ -721,12 +742,12 @@ def parse(args):
             if args.dump == "content":
                 url = urlparse(unquote(record['WARC-Target-URI']))
 
-                #Set up folder
+                # Set up folder
                 index = url.path.rfind("/") + 1
                 file = url.path[index:]
                 path = url.path[:index]
 
-                #Process filename
+                # Process filename
                 if "." not in file:
                     path += file
                     if not path.endswith("/"):
@@ -734,12 +755,12 @@ def parse(args):
 
                     file = 'index.html'
 
-                #Final fixes.
+                # Final fixes.
                 path = path.replace(".", "-")
                 host = url.hostname.replace('www.', '', 1)
                 path = args.output_path + host + path
 
-                #Create new directories
+                # Create new directories
                 if not os.path.exists(path):
                     try:
                         os.makedirs(path)
@@ -747,37 +768,40 @@ def parse(args):
                         path = "/".join([i[:25] for i in path.split("/")])
                         os.makedirs(path)
 
-                #Test if file has a proper extension.
+                # Test if file has a proper extension.
                 index = file.index(".")
                 suffix = file[index:]
                 content = record.http.get("content_type", "")
                 slist = mimetypes.guess_all_extensions(content)
                 if suffix not in slist:
-                    #Correct suffix if we can.
+                    # Correct suffix if we can.
                     suffix = mimetypes.guess_extension(content)
                     if suffix:
                         file = file[:index] + suffix
                     else:
                         inc(record.http, "content_type", "unknown mime type")
 
-                #Check for gzip compression.
+                # Check for gzip compression.
                 if record.http.get("content-encoding", None) == "gzip":
                     file += ".gz"
 
                 path += file
 
-                #If Duplicate file then insert numbers
+                # If Duplicate file then insert numbers
                 index = path.rfind(".")
                 temp = path
                 n = 0
                 while os.path.isfile(temp):
-                    n +=1
-                    temp = path[:index] + "("+ str(n) + ")" + path[index:]
+                    n += 1
+                    temp = path[:index] + "(" + str(n) + ")" + path[index:]
                 path = temp
 
-                #Write file.
-                with open(path, 'wb') as fp:
-                    record.http.write_payload_to(fp)
+                # Write file.
+                try:
+                    with open(path, 'wb') as fp:
+                        record.http.write_payload_to(fp)
+                except OSError as e:
+                    print("unable to save file due to operating system error:", e)
 
         except Exception:
             if args.error:
@@ -788,23 +812,33 @@ def parse(args):
             else:
                 raise
 
-    #print results
+    # print results
     if args.silence:
         print("-----------------------------")
         for i in counts:
             print("\nCount of {}.".format(i))
             pprint(counts[i])
 
-if __name__ == "__main__":
+
+def main():
     parser = argparse.ArgumentParser(description='Extracts attributes from warc files.')
-    parser.add_argument("filter", nargs='*', help="Attributes to filter by. Entries that do not contain filtered elements are ignored. Example: warc-type:response, would ignore all warc entries that are not responses. Attributes in an HTTP object should be prefixed by 'http'. Example, http:error:200.")
+    parser.add_argument("filter", nargs='*',
+                        help="Attributes to filter by. Entries that do not contain filtered elements are ignored. "
+                             "Example: warc-type:response, would ignore all warc entries that are not responses. "
+                             "Attributes in an HTTP object should be prefixed by 'http'. Example, http:error:200.")
     parser.add_argument("-silence", action="store_false", help="Silences output of warc data.")
-    parser.add_argument("-error", action="store_true", help="Silences most errors and records problematic warc entries to error.warc.")
-    parser.add_argument("-string", default="", help="Regular expression to limit parsed warc files. Defaults to empty string.")
+    parser.add_argument("-error", action="store_true",
+                        help="Silences most errors and records problematic warc entries to error.warc.")
+    parser.add_argument("-string", default="",
+                        help="Regular expression to limit parsed warc files. Defaults to empty string.")
     parser.add_argument("-path", default="./", help="Path to folder containing warc files. Defaults to current folder.")
-    parser.add_argument("-output_path", default="data/", help="Path to folder to dump content files. Defaults to data/ folder.")
-    parser.add_argument("-output", default="output.warc", help="File to output warc contents. Defaults to 'output.warc'.")
-    parser.add_argument("-dump", choices=['warc', 'content'], type=str, help="Dumps all entries that survived filter. 'warc' creates a filtered warc file. 'content' tries to reproduce file structure of archived websites.")
+    parser.add_argument("-output_path", default="data/",
+                        help="Path to folder to dump content files. Defaults to data/ folder.")
+    parser.add_argument("-output", default="output.warc",
+                        help="File to output warc contents. Defaults to 'output.warc'.")
+    parser.add_argument("-dump", choices=['warc', 'content'], type=str,
+                        help="Dumps all entries that survived filter. 'warc' creates a filtered warc file. "
+                             "'content' tries to reproduce file structure of archived websites.")
     args = parser.parse_args()
 
     if args.path[-1] != "/":
@@ -817,12 +851,17 @@ if __name__ == "__main__":
         if not os.path.exists(args.output_path):
             os.makedirs(args.output_path)
 
-    #Forced filters
+    # Forced filters
+    filters = list(args.filter)
     if args.dump == "content":
-        args.filter.append("warc-type:response")
-        args.filter.append("content-type:application/http")
+        filters.append("warc-type:response")
+        filters.append("content-type:application/http")
 
-    args.filter = [filterObject(i) for i in args.filter]
+    args.filter = [FilterObject(i) for i in filters]
 
     args.string = re.compile(args.string)
     parse(args)
+
+
+if __name__ == "__main__":
+    main()
