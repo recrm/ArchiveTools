@@ -4,6 +4,19 @@ A collection of tools for archiving and analyzing the internet.
 
 All scripts in this tool set are designed to be used with python 3. Python 2 is not supported.
 
+
+Note: Due to the popularity of warc-extractor. It has been moved to a package on its own.
+As well. It is available to download directly through pip
+
+````bash
+python3 -m pip install warc-extractor
+````
+
+This should install the warc extractor to the command line. It can be run as follows.
+````
+warc-extractor --help
+````
+
 ## json-extractor.py
 
 Json-json-extractor.py is a short script designed to extract a condensed CSV file from a collection of line separated JSON files. This script is designed for use with the data output of http://github.com/edsu/twarc and all of the scrapers in this project.
