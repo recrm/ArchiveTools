@@ -1,8 +1,11 @@
 [tool.poetry]
 name = "warc-extractor"
-version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+version = "0.1.1"
+description = "A simple tool for extracting warc files."
+homepage = "https://blog.ak-rc.net/2022/06/warc-extractor-update/"
+repository = "https://github.com/recrm/ArchiveTools"
+authors = ["Ryan Chartier <redrecrm@gmail.com>"]
+keywords = ["warc"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
